@@ -1,0 +1,11 @@
+###
+POST http://localhost:3009/api/folder/create
+Content-Type: application/json
+
+{
+  "name": "Folder A",
+  "parentFolder": null
+}
+
+
+###
