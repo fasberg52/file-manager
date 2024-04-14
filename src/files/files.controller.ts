@@ -1,18 +1,29 @@
-import { Controller, Post, UploadedFile, UseInterceptors, Param } from '@nestjs/common';
+import {
+  Controller,
+  Post,
+  Get,
+  UploadedFile,
+  UseInterceptors,
+  Param,
+} from '@nestjs/common';
 import { FileInterceptor } from '@nestjs/platform-express';
+import { FileService } from './files.service';
 
 @Controller('files')
 export class FilesController {
-  @Post(':folderId/upload')
+  constructor(private readonly fileService: FileService) {}
+ 
+  @Post(':folderName/upload')
   @UseInterceptors(FileInterceptor('file'))
   async uploadFile(
     @UploadedFile() file: Express.Multer.File,
-    @Param('folderId') folderId: string,
+    @Param('folderName') folderName: string,
   ) {
-    // Handle file upload logic here
-    console.log('Uploaded file:', file);
-    console.log('Folder ID:', folderId);
-    // You can save file details to the database or perform other actions
-    return { message: 'File uploaded successfully' };
+    try {
+      const uploadedFile = await this.fileService.saveFile(file, folderName);
+      return { message: 'File uploaded successfully', file: uploadedFile };
+    } catch (error) {
+      return { message: 'Error uploading file', error: error.message };
+    }
   }
 }

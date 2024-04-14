@@ -12,4 +12,4 @@ import { FolderController } from './folder.controller';
   controllers: [FolderController],
   providers: [FolderService, FileSystemService],
 })
-export class FileManagerModule {}
+export class FolderModule {}

@@ -1,17 +1,16 @@
 import { Module } from '@nestjs/common';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
-import { FileManagerModule } from './file-manager/folder.module';
+import { FolderModule } from './file-manager/folder.module';
 import { MongooseModule } from '@nestjs/mongoose';
-import { MulterModule } from '@nestjs/platform-express';
-import { multerConfig } from './files/multer.config';
+
+import { FilesModule } from './files/files.module';
 
 @Module({
   imports: [
-    MulterModule.register(multerConfig),
     MongooseModule.forRoot('mongodb://127.0.0.1/fileManger'),
-    FileManagerModule,
-   
+    FolderModule,
+    FilesModule,
   ],
   controllers: [AppController],
   providers: [AppService],

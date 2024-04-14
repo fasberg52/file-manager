@@ -16,6 +16,9 @@ export class Folder extends Document {
 
   @Prop({ type: [{ type: 'ObjectId', ref: 'Folder' }] })
   folders: Folder[];
+
+  @Prop({ type: [{ type: Types.ObjectId, ref: 'File' }] })
+  files: Types.ObjectId[];
 }
 
 export const FolderSchema = SchemaFactory.createForClass(Folder);

@@ -1,8 +1,8 @@
-import { Folder } from './../file-manager/models/file-manager.model';
 import { Injectable } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
 import { File } from './interfaces/file.interface';
+import { Folder } from './../file-manager/models/file-manager.model';
 
 @Injectable()
 export class FileService {
@@ -11,8 +11,8 @@ export class FileService {
     @InjectModel('Folder') private readonly folderModel: Model<Folder>,
   ) {}
 
-  async saveFile(file: Express.Multer.File, folderId: string): Promise<File> {
-    const folder = await this.folderModel.findById(folderId);
+  async saveFile(file: Express.Multer.File, folderName: string): Promise<File> {
+    const folder = await this.folderModel.findOne({ name: folderName });
     if (!folder) {
       throw new Error('Folder not found');
     }
@@ -21,7 +21,7 @@ export class FileService {
       originalName: file.originalname,
       mimeType: file.mimetype,
       size: file.size,
-      folder: folderId,
+      folder: folder._id,
     });
     await newFile.save();
 
