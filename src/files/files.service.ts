@@ -13,10 +13,11 @@ export class FileService {
 
   async saveFile(file: Express.Multer.File, folderName: string): Promise<File> {
     const folder = await this.folderModel.findOne({ name: folderName });
+    console.log('Received folder:', folder);
     if (!folder) {
       throw new Error('Folder not found');
     }
-  
+
     const newFile = new this.fileModel({
       originalName: file.originalname,
       mimeType: file.mimetype,
@@ -24,11 +25,10 @@ export class FileService {
       folder: folder._id, // Assuming folder._id is the correct reference to the folder in your database
     });
     await newFile.save();
-  
+
     folder.files.push(newFile._id); // Assuming files is an array field in your Folder model
     await folder.save();
-  
+
     return newFile;
   }
-  
 }
