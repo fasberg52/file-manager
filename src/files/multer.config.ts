@@ -3,11 +3,12 @@ import { diskStorage } from 'multer';
 import { extname } from 'path';
 
 export const multerConfig: MulterModuleOptions = {
-  dest: './root/root', // Set the destination folder where files will be stored
   storage: diskStorage({
     destination: (req, file, cb) => {
-      const folderName = req.params.folderName; // Assuming you have a route parameter for folderName
-      const folderPath = `./root/root/folder A/${folderName}`; // Specify the full path to the destination folder
+      const folderPath = req.body.folderPath; // Assuming folderPath is sent in the form data
+      if (!folderPath) {
+        return cb(new Error('Folder path is required'), '');
+      }
       console.log('Destination folder path:', folderPath); // Log the destination folder path
       cb(null, folderPath);
     },
