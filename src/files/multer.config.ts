@@ -5,11 +5,11 @@ import { diskStorage } from 'multer';
 import { extname } from 'path';
 
 export const multerConfig: MulterModuleOptions = {
-  dest: './uploads', // Set the destination folder where files will be stored
+  dest: './root/root', // Set the destination folder where files will be stored
   storage: diskStorage({
     destination: (req, file, cb) => {
       const folderId = req.params.folderId; // Assuming you have a route parameter for folderId
-      const folderPath = `./uploads/${folderId}`; // Dynamic folder path based on folderId
+      const folderPath = `./root/root/${folderId}`; // Dynamic folder path based on folderId
       cb(null, folderPath);
     },
     filename: (req, file, cb) => {

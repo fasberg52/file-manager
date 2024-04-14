@@ -44,7 +44,7 @@ export class FolderService {
         name: folderName,
         path: folderPath,
         parentFolder: parentFolder ? parentFolder._id : null,
-        parentFolderName: parentFolder.name,
+        parentFolderName: parentFolder ? parentFolder.name : null,
         parentFolderPath: parentFolder ? parentFolder.path : null,
       });
       await folder.save();
