@@ -6,6 +6,18 @@ Content-Type: application/json
   "name": "Folder PP",
   "parentFolder": "661a7bd51f816ed428a001cc"
 }
+###
+POST http://localhost:3009/api/files/upload
+Content-Type: multipart/form-data; boundary=WebAppBoundary
 
+--WebAppBoundary
+Content-Disposition: form-data; name="file"; filename="example.png"
+Content-Type: image/png
 
+< ./path/to/your/file/example.png
+--WebAppBoundary
+Content-Disposition: form-data; name="folderPath"
+
+./root/root/A/fiziki
+--WebAppBoundary--
 ###

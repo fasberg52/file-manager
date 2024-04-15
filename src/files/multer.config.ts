@@ -12,6 +12,7 @@ export const multerConfig: MulterModuleOptions = {
       console.log('Destination folder path:', folderPath); // Log the destination folder path
       cb(null, folderPath);
     },
+    
     filename: (req, file, cb) => {
       const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1e9);
       const extension = extname(file.originalname);
