@@ -15,10 +15,10 @@ export class FilesController {
 
   @Post('upload')
   //@UseInterceptors(FileInterceptor('folderPath'))
-  @UseInterceptors(FileInterceptor('file'))
+  //@UseInterceptors(FileInterceptor('file',))
   async uploadFile(
-    @UploadedFile() file: Express.Multer.File,
     @Body('folderPath') folderPath: string,
+    @UploadedFile() file: Express.Multer.File,
   ) {
     try {
       console.log(`folderPath in controller >>> ${folderPath}`);
