@@ -6,15 +6,13 @@ import { Folder } from './../file-manager/models/file-manager.model';
 
 @Injectable()
 export class FileService {
-
   constructor(
     @InjectModel('File') private readonly fileModel: Model<File>,
     @InjectModel('Folder') private readonly folderModel: Model<Folder>,
   ) {}
   async saveFile(file: Express.Multer.File, folderPath: string): Promise<File> {
-    console.log(folderPath);
     const folder = await this.folderModel.findOne({ path: folderPath });
-    console.log(folder);
+
     if (!folder) {
       throw new Error('Folder not found');
     }
@@ -23,11 +21,11 @@ export class FileService {
       originalName: file.originalname,
       mimeType: file.mimetype,
       size: file.size,
-      folder: folder._id, 
+      folder: folder._id,
     });
     await newFile.save();
-  
-    folder.files.push(newFile._id); 
+
+    folder.files.push(newFile._id);
     await folder.save();
 
     return newFile;

@@ -22,7 +22,7 @@ export class FolderService {
     createFolderDTO: createFolderDTO,
   ): Promise<FolderCreateResponse> {
     try {
-      const rootPath = `./root`;
+      const rootPath = `.`;
       const folderName = createFolderDTO.name;
       let parentFolderPath = rootPath;
       let parentFolder: Folder | null = null;
