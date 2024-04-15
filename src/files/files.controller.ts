@@ -4,6 +4,7 @@ import {
   UploadedFile,
   UseInterceptors,
   Body,
+  BadRequestException,
 } from '@nestjs/common';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { FileService } from './files.service';
@@ -13,6 +14,7 @@ export class FilesController {
   constructor(private readonly fileService: FileService) {}
 
   @Post('upload')
+  //@UseInterceptors(FileInterceptor('folderPath'))
   @UseInterceptors(FileInterceptor('file'))
   async uploadFile(
     @UploadedFile() file: Express.Multer.File,
@@ -27,7 +29,7 @@ export class FilesController {
       };
 
       if (!folderPath) {
-        throw new Error('Folder path is required');
+        throw new BadRequestException('Folder path is required');
       }
    
       const uploadedFile = await this.fileService.saveFile(file, folderPath);

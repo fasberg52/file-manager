@@ -18,7 +18,7 @@ export class FileService {
     if (!folder) {
       throw new Error('Folder not found');
     }
-  
+
     const newFile = new this.fileModel({
       originalName: file.originalname,
       mimeType: file.mimetype,
@@ -29,8 +29,7 @@ export class FileService {
   
     folder.files.push(newFile._id); 
     await folder.save();
-  
+
     return newFile;
   }
-  
 }
