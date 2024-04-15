@@ -10,10 +10,9 @@ export class FileService {
     @InjectModel('File') private readonly fileModel: Model<File>,
     @InjectModel('Folder') private readonly folderModel: Model<Folder>,
   ) {}
+  async saveFile(file: Express.Multer.File, folderPath: string): Promise<File> {
+    const folder = await this.folderModel.findOne({ path: folderPath });
 
-  async saveFile(file: Express.Multer.File, folderName: string): Promise<File> {
-    const folder = await this.folderModel.findOne({ name: folderName });
-    console.log('Received folder:', folder);
     if (!folder) {
       throw new Error('Folder not found');
     }
@@ -22,11 +21,11 @@ export class FileService {
       originalName: file.originalname,
       mimeType: file.mimetype,
       size: file.size,
-      folder: folder._id, // Assuming folder._id is the correct reference to the folder in your database
+      folder: folder._id,
     });
     await newFile.save();
 
-    folder.files.push(newFile._id); // Assuming files is an array field in your Folder model
+    folder.files.push(newFile._id);
     await folder.save();
 
     return newFile;
