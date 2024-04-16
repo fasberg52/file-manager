@@ -12,3 +12,4 @@ export interface File {
     path: string;
     files: string[]; // Array of file IDs
   }
+

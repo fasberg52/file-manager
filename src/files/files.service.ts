@@ -2,7 +2,7 @@ import { Injectable } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
 import { File } from './interfaces/file.interface';
-import { Folder } from './../file-manager/models/file-manager.model';
+import { Folder } from 'src/file-manager/models/file-manager.model';
 
 @Injectable()
 export class FileService {

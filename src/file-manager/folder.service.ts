@@ -8,7 +8,7 @@ import { Model } from 'mongoose';
 import { FileSystemService } from '../fileSystem/fileSystemService';
 import { Folder } from './models/file-manager.model';
 import { createFolderDTO } from './dtos/file-manager.dto';
-import { FolderCreateResponse } from './interface/createFolder';
+import { FolderCreateResponse, getFolderById } from './interface/createFolder';
 import { HttpStatus } from '@nestjs/common';
 
 @Injectable()
@@ -22,30 +22,29 @@ export class FolderService {
     createFolderDTO: createFolderDTO,
   ): Promise<FolderCreateResponse> {
     try {
-      const rootPath = `.`;
+      const rootPath = `./root`;
       const folderName = createFolderDTO.name;
-      let parentFolderPath = rootPath;
-      let parentFolder: Folder | null = null;
+      let fullPath = rootPath;
+
+      let parentFolder = null;
 
       if (createFolderDTO.parentFolder) {
         parentFolder = await this.folderModel.findById(
           createFolderDTO.parentFolder,
         );
         if (!parentFolder) {
-          throw new Error('Parent folder not found');
+          throw new NotFoundException('Parent folder not found');
         }
-        parentFolderPath = parentFolder.path;
+        fullPath = parentFolder.path;
       }
 
-      const folderPath = `${parentFolderPath}/${folderName}`;
-      await this.fileSystemService.createFolder(rootPath, folderPath);
+      const folderPath = `${fullPath}/${folderName}`;
+      await this.fileSystemService.createFolder(folderPath);
 
       const folder = new this.folderModel({
         name: folderName,
         path: folderPath,
         parentFolder: parentFolder ? parentFolder._id : null,
-        parentFolderName: parentFolder ? parentFolder.name : null,
-        parentFolderPath: parentFolder ? parentFolder.path : null,
       });
       await folder.save();
 
@@ -64,6 +63,7 @@ export class FolderService {
       throw new InternalServerErrorException('Failed to create folder');
     }
   }
+
   async getAll(): Promise<Folder[]> {
     try {
       const folders = await this.folderModel.find().exec();
@@ -73,16 +73,31 @@ export class FolderService {
       throw new InternalServerErrorException('Failed to fetch folders');
     }
   }
-  async getFolderById(id: string): Promise<Folder> {
+  async getFolderById(id: string): Promise<getFolderById> {
     try {
+      console.log(`id is : ${id}`);
       const folder = await this.folderModel
         .findById(id)
-        .populate('folders', 'name path')
+        .populate({
+          path: 'folders',
+          select: 'name path',
+        })
+        .populate({
+          path: 'files',
+          select: 'originalName mimeType size',
+        })
         .exec();
+      console.log(`folder is : ${folder}`);
+
       if (!folder) {
         throw new NotFoundException('Folder not found');
+      } else if (!folder._id) {
+        throw new NotFoundException('Folder not found');
       }
-      return folder;
+      return {
+        statusCode: HttpStatus.OK,
+        folder: folder.toObject(),
+      };
     } catch (error) {
       console.error(`Error while getting folder by ID: ${error.message}`);
       throw new InternalServerErrorException('Failed to fetch folder');

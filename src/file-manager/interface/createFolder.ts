@@ -1,5 +1,7 @@
 import { HttpStatus } from '@nestjs/common';
-export interface Folder {
+import { Folder } from '../models/file-manager.model';
+
+export interface Folders {
   _id: string;
   name: string;
   path: string;
@@ -10,5 +12,10 @@ export interface Folder {
 export interface FolderCreateResponse {
   statusCode: HttpStatus;
   message: string;
+  folder: Folder;
+}
+
+export interface getFolderById {
+  statusCode: HttpStatus;
   folder: Folder;
 }

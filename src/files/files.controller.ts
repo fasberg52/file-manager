@@ -20,8 +20,8 @@ export class FilesController {
     @UploadedFile() file: Express.Multer.File,
     @Body('folderPath') folderPath: string,
   ) {
-    console.log(`file >>> ${file.originalname}`);
-    console.log(`folderPath >>> ${folderPath}`);
+    //console.log(`file >>> ${file.originalname}`);
+    //console.log(`folderPath >>> ${folderPath}`);
     try {
       const fileWithBody = {
         file: file,
