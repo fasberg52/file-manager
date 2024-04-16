@@ -6,7 +6,7 @@ import {
 import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
 import { FileSystemService } from '../fileSystem/folder.fs.service';
-import { Folder, FolderSchema } from './models/file-manager.model';
+import { Folder } from './models/file-manager.model';
 import { createFolderDTO } from './dtos/file-manager.dto';
 import { FolderCreateResponse, getFolderById } from './interface/createFolder';
 import { HttpStatus } from '@nestjs/common';
