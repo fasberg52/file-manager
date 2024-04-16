@@ -14,7 +14,6 @@ export const multerConfig = {
     },
     
     filename: (req, file, cb) => {
-      // Generate a unique filename here
       const uniqueFilename = `${Date.now()}-${file.originalname}`;
       cb(null, uniqueFilename);
     },

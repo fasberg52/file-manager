@@ -1,7 +1,5 @@
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
-import { Types, HydratedDocument, Document } from 'mongoose';
-
-export type FolderDocument = HydratedDocument<Folder>;
+import { Document, Types } from 'mongoose';
 
 @Schema()
 export class Folder extends Document {
@@ -17,7 +15,7 @@ export class Folder extends Document {
   @Prop({ type: [{ type: 'ObjectId', ref: 'Folder' }] })
   folders: Folder[];
 
-  @Prop({ type: [{ type: Types.ObjectId, ref: 'File' }] })
+  @Prop({ type: [{ type: 'ObjectId', ref: 'File' }] })
   files: Types.ObjectId[];
 }
 

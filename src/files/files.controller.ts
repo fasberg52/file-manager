@@ -20,18 +20,18 @@ export class FilesController {
     @Body('folderPath') folderPath: string,
     @UploadedFile() file: Express.Multer.File,
   ) {
-    console.log(`file >>> ${file.originalname}`);
-    console.log(`folderPath >>> ${folderPath}`);
+    //console.log(`file >>> ${file.originalname}`);
+    //console.log(`folderPath >>> ${folderPath}`);
     try {
      
 
       if (!folderPath) {
         throw new BadRequestException('Folder path is required');
       }
-   
-      const uploadedFile = await this.fileService.saveFile(file, folderPath);
-     
-      return { message: 'File uploaded successfully', file: uploadedFile };
+
+      return await this.fileService.saveFile(file, folderPath);
+
+      //return { message: 'File uploaded successfully', file: uploadedFile };
     } catch (error) {
       console.log(`error in uploadFile >>> ${error}`);
       return { message: 'Error uploading file', error: error.message };
