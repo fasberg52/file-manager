@@ -12,10 +12,10 @@ export interface Folders {
 export interface FolderCreateResponse {
   statusCode: HttpStatus;
   message: string;
-  folder: Folder;
+  data: Folder;
 }
 
 export interface getFolderById {
   statusCode: HttpStatus;
-  folder: Folder;
+  data: Folder;
 }

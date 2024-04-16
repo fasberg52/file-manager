@@ -1,15 +1,20 @@
+import { HttpStatus } from "@nestjs/common";
+
 // file.interface.ts
 export interface File {
-    originalName: string;
-    mimeType: string;
-    size: number;
-    folder: string; // Reference to the folder ID
-  }
-  
-  // folder.interface.ts
-  export interface Folder {
-    name: string;
-    path: string;
-    files: string[]; // Array of file IDs
-  }
-
+  originalName: string;
+  mimeType: string;
+  size: number;
+  folder: string;
+}
+export interface SaveFile {
+  message: string;
+  statusCode : HttpStatus,
+  data: File;
+}
+// folder.interface.ts
+export interface Folder {
+  name: string;
+  path: string;
+  files: string[]; // Array of file IDs
+}

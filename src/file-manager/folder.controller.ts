@@ -23,4 +23,10 @@ export class FolderController {
   async getFolderById(@Param('id') id: string): Promise<getFolderById> {
     return this._folderService.getFolderById(id);
   }
+
+  @Get('/checkRootFolder')
+  async checkRootFolder(): Promise<boolean> {
+    const rootFolderCheck = await this._folderService.checkRootFolder();
+    return rootFolderCheck.exists;
+  }
 }
