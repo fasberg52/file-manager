@@ -64,6 +64,8 @@ export class FolderService {
       throw new InternalServerErrorException('Failed to create folder');
     }
   }
+
+
   async getAll(): Promise<Folder[]> {
     try {
       const folders = await this.folderModel.find().exec();

@@ -15,7 +15,7 @@ export class FilesController {
 
   @Post('upload')
   //@UseInterceptors(FileInterceptor('folderPath'))
-  //@UseInterceptors(FileInterceptor('file',))
+  @UseInterceptors(FileInterceptor('file',))
   async uploadFile(
     @Body('folderPath') folderPath: string,
     @UploadedFile() file: Express.Multer.File,
@@ -23,10 +23,7 @@ export class FilesController {
     console.log(`file >>> ${file.originalname}`);
     console.log(`folderPath >>> ${folderPath}`);
     try {
-      const fileWithBody = {
-        file: file,
-        folderPath: folderPath,
-      };
+     
 
       if (!folderPath) {
         throw new BadRequestException('Folder path is required');
