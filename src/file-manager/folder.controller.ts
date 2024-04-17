@@ -1,7 +1,11 @@
 import { Controller, Post, Body, Get, Param } from '@nestjs/common';
 import { FolderService } from './folder.service';
 import { createFolderDTO } from './dtos/file-manager.dto';
-import { FolderCreateResponse, PathRequest, getFolder } from './interface/createFolder';
+import {
+  FolderCreateResponse,
+  PathRequest,
+  getFolder,
+} from './interface/createFolder';
 
 @Controller('/folder')
 export class FolderController {
@@ -12,6 +16,15 @@ export class FolderController {
     @Body() createFolderDTO: createFolderDTO,
   ): Promise<FolderCreateResponse> {
     return this._folderService.createFolder(createFolderDTO);
+  }
+
+  @Get('/initialize-root-folder')
+  async getInitializeRootFolder() {
+    return this._folderService.getInitializeRootFolder();
+  }
+  @Post('/initialize-root-folder')
+  async postInitializeRootFolder() {
+    return this._folderService.createInitializeRootFolder();
   }
 
   @Get('/')

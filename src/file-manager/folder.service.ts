@@ -9,7 +9,11 @@ import { Model } from 'mongoose';
 import { FileSystemService } from '../fileSystem/folder.fs.service';
 import { Folder, FolderSchema } from './models/file-manager.model';
 import { createFolderDTO } from './dtos/file-manager.dto';
-import { FolderCreateResponse, getFolder } from './interface/createFolder';
+import {
+  FolderCreateResponse,
+  getFolder,
+  initializeRootFolder,
+} from './interface/createFolder';
 import { HttpStatus } from '@nestjs/common';
 
 @Injectable()
@@ -18,18 +22,47 @@ export class FolderService {
     @InjectModel(Folder.name) private readonly folderModel: Model<Folder>,
     private readonly fileSystemService: FileSystemService,
   ) {}
-  async initializeRootFolder(): Promise<void> {
+
+  async createInitializeRootFolder(): Promise<initializeRootFolder> {
     try {
-      const existingRoot = await this.folderModel.findOne({
+      const rootFolder = new this.folderModel({
+        name: 'Root',
+        path: './root',
         parentFolder: null,
       });
+      await rootFolder.save();
+
+      await this.fileSystemService.createDirectory('./root');
+
+      return {
+        statusCode: HttpStatus.OK,
+        message: 'ساخته شد',
+        data: rootFolder,
+        state: true,
+      };
+    } catch (error) {
+      console.error(`Error while initializing root folder: ${error.message}`);
+      throw new InternalServerErrorException(
+        'Failed to initialize root folder',
+      );
+    }
+  }
+  async getInitializeRootFolder(): Promise<initializeRootFolder> {
+    try {
+      const existingRoot = await this.folderModel.findOne({
+        name: 'Root',
+      });
+
       if (!existingRoot) {
-        const rootFolder = new this.folderModel({
-          name: 'Root',
-          path: './root',
-          parentFolder: null,
-        });
-        await rootFolder.save();
+        return {
+          statusCode: HttpStatus.OK,
+          state: false,
+        };
+      } else {
+        return {
+          statusCode: HttpStatus.OK,
+          state: true,
+        };
       }
     } catch (error) {
       console.error(`Error while initializing root folder: ${error.message}`);
@@ -43,7 +76,6 @@ export class FolderService {
     createFolderDTO: createFolderDTO,
   ): Promise<FolderCreateResponse> {
     try {
-      await this.initializeRootFolder();
       const rootPath = `./root`;
       const folderName = createFolderDTO.name;
       let fullPath = rootPath;
@@ -90,6 +122,9 @@ export class FolderService {
       };
     } catch (error) {
       console.error(`Error while creating folder: ${error.message}`);
+      if (error instanceof ConflictException) {
+        throw error;
+      }
       throw new InternalServerErrorException('Failed to create folder');
     }
   }

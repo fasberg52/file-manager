@@ -24,3 +24,9 @@ export interface PathRequest {
   path: string;
 }
 
+export interface initializeRootFolder {
+  statusCode: HttpStatus;
+  message?: string;
+  data?: Folder;
+  state: boolean;
+}

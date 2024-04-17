@@ -6,8 +6,6 @@ const asyncMkdir = promisify(fs.mkdir);
 const asyncExists = promisify(fs.exists);
 
 @Injectable()
-
-
 export class FileSystemService {
   async createFolder(folderPath: string): Promise<void> {
     try {
@@ -15,7 +13,7 @@ export class FileSystemService {
         folders += `${folder}/`;
 
         if (!fs.existsSync(folders)) {
-          fs.mkdirSync(folders);
+          fs.mkdirSync(folders, { recursive: true });
         }
 
         return folders;
@@ -23,6 +21,15 @@ export class FileSystemService {
     } catch (error) {
       console.log(`Error in FileSystemService for createFolder: `);
       throw new InternalServerErrorException('Failed to create folder');
+    }
+  }
+  async createDirectory(path: string): Promise<void> {
+    try {
+      await fs.promises.mkdir(path, { recursive: true });
+    } catch (error) {
+      throw new Error(
+        `Failed to create directory at ${path}: ${error.message}`,
+      );
     }
   }
 }
