@@ -5,4 +5,5 @@ export class createFolderDTO {
   name: string;
   @IsString()
   parentFolder: string;
+
 }

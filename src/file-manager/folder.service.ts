@@ -37,59 +37,13 @@ export class FolderService {
       );
     }
   }
-  // async createFolder(
-  //   createFolderDTO: createFolderDTO,
-  // ): Promise<FolderCreateResponse> {
-  //   try {
-  //     const rootPath = `./root`;
-  //     const folderName = createFolderDTO.name;
-  //     let fullPath = rootPath;
 
-  //     let parentFolder = null;
-
-  //     if (createFolderDTO.parentFolder) {
-  //       parentFolder = await this.folderModel.findById(
-  //         createFolderDTO.parentFolder,
-  //       );
-  //       if (!parentFolder) {
-  //         throw new NotFoundException('Parent folder not found');
-  //       }
-  //       fullPath = parentFolder.path;
-  //     }
-
-  //     const folderPath = `${fullPath}/${folderName}`;
-  //     await this.fileSystemService.createFolder(folderPath);
-
-  //     const folder = new this.folderModel({
-  //       name: folderName,
-  //       path: folderPath,
-  //       parentFolder: parentFolder ? parentFolder._id : null,
-  //     });
-  //     await folder.save();
-
-  //     if (parentFolder) {
-  //       parentFolder.folders.push(folder._id);
-  //       await parentFolder.save();
-  //     }
-
-  //     return {
-  //       statusCode: HttpStatus.CREATED,
-  //       message: 'Folder created successfully',
-  //       folder: folder.toObject(),
-  //     };
-  //   } catch (error) {
-  //     console.error(`Error while creating folder: ${error.message}`);
-  //     throw new InternalServerErrorException('Failed to create folder');
-  //   }
-  // }
 
   async createFolder(
     createFolderDTO: createFolderDTO,
   ): Promise<FolderCreateResponse> {
     try {
-      // Ensure root folder is initialized
-      await this.initializeRootFolder(); // Assuming this method checks for and creates the root folder if not present
-
+      await this.initializeRootFolder();
       const rootPath = `./root`;
       const folderName = createFolderDTO.name;
       let fullPath = rootPath;
@@ -173,9 +127,12 @@ export class FolderService {
   }
   async getFolderByPath(path: string): Promise<getFolder> {
     try {
-      console.log(`path is : ${path}`);
+      console.log(path);
+
+      const trimmedPath = path.trim();
+      console.log(trimmedPath);
       const folder = await this.folderModel
-        .findOne({ path })
+        .findOne({ path: trimmedPath })
         .populate({
           path: 'folders',
           select: 'name path',
@@ -185,12 +142,13 @@ export class FolderService {
           select: 'originalName mimeType size',
         })
         .exec();
-      console.log(`folder is : ${folder}`);
+
       if (!folder) {
         throw new NotFoundException('Folder not found');
       } else if (!folder._id) {
         throw new NotFoundException('Folder not found');
       }
+
       return {
         statusCode: HttpStatus.OK,
         data: folder.toObject(),
@@ -200,6 +158,7 @@ export class FolderService {
       throw new InternalServerErrorException('Failed to fetch folder');
     }
   }
+
   async checkRootFolder(): Promise<{ exists: boolean; rootFolderId?: string }> {
     try {
       const rootFolder = await this.folderModel.findOne({ name: 'Root' });

@@ -3,6 +3,7 @@ import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
 import { File, SaveFile } from './interfaces/file.interface';
 import { Folder } from 'src/file-manager/models/file-manager.model';
+import { uniqueFilename } from './multer.config';
 
 @Injectable()
 export class FileService {
@@ -20,11 +21,14 @@ export class FileService {
       throw new Error('Folder not found');
     }
 
+    const fullPath = `${folder.path}/${uniqueFilename}`;
+
     const newFile = new this.fileModel({
-      originalName: file.originalname,
+      originalName: uniqueFilename,
       mimeType: file.mimetype,
       size: file.size,
       folder: folder._id,
+      path: fullPath,
     });
     await newFile.save();
 

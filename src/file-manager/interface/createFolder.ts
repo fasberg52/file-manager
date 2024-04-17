@@ -20,3 +20,7 @@ export interface getFolder {
   data: Folder;
 }
 
+export interface PathRequest {
+  path: string;
+}
+
