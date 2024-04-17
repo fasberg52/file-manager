@@ -15,7 +15,8 @@ export interface FolderCreateResponse {
   data: Folder;
 }
 
-export interface getFolderById {
+export interface getFolder {
   statusCode: HttpStatus;
   data: Folder;
 }
+

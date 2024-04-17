@@ -8,7 +8,7 @@ import { Model } from 'mongoose';
 import { FileSystemService } from '../fileSystem/folder.fs.service';
 import { Folder, FolderSchema } from './models/file-manager.model';
 import { createFolderDTO } from './dtos/file-manager.dto';
-import { FolderCreateResponse, getFolderById } from './interface/createFolder';
+import { FolderCreateResponse, getFolder } from './interface/createFolder';
 import { HttpStatus } from '@nestjs/common';
 
 @Injectable()
@@ -141,7 +141,7 @@ export class FolderService {
       throw new InternalServerErrorException('Failed to fetch folders');
     }
   }
-  async getFolderById(id: string): Promise<getFolderById> {
+  async getFolderById(id: string): Promise<getFolder> {
     try {
       console.log(`id is : ${id}`);
       const folder = await this.folderModel
@@ -168,6 +168,35 @@ export class FolderService {
       };
     } catch (error) {
       console.error(`Error while getting folder by ID: ${error.message}`);
+      throw new InternalServerErrorException('Failed to fetch folder');
+    }
+  }
+  async getFolderByPath(path: string): Promise<getFolder> {
+    try {
+      console.log(`path is : ${path}`);
+      const folder = await this.folderModel
+        .findOne({ path })
+        .populate({
+          path: 'folders',
+          select: 'name path',
+        })
+        .populate({
+          path: 'files',
+          select: 'originalName mimeType size',
+        })
+        .exec();
+      console.log(`folder is : ${folder}`);
+      if (!folder) {
+        throw new NotFoundException('Folder not found');
+      } else if (!folder._id) {
+        throw new NotFoundException('Folder not found');
+      }
+      return {
+        statusCode: HttpStatus.OK,
+        data: folder.toObject(),
+      };
+    } catch (error) {
+      console.error(`Error while getting folder by path: ${error.message}`);
       throw new InternalServerErrorException('Failed to fetch folder');
     }
   }
