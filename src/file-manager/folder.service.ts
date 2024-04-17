@@ -1,4 +1,5 @@
 import {
+  ConflictException,
   Injectable,
   InternalServerErrorException,
   NotFoundException,
@@ -38,7 +39,6 @@ export class FolderService {
     }
   }
 
-
   async createFolder(
     createFolderDTO: createFolderDTO,
   ): Promise<FolderCreateResponse> {
@@ -50,14 +50,22 @@ export class FolderService {
 
       let parentFolder = null;
 
-      if (createFolderDTO.parentFolder) {
-        parentFolder = await this.folderModel.findById(
-          createFolderDTO.parentFolder,
-        );
+      const existingFolder = await this.folderModel.findOne({
+        name: folderName,
+      });
+      if (existingFolder) {
+        throw new ConflictException('Folder with this name already exists');
+      }
+
+      if (createFolderDTO.parentFolderPath) {
+        const parentFolderPath = createFolderDTO.parentFolderPath;
+        parentFolder = await this.folderModel.findOne({
+          path: parentFolderPath,
+        });
         if (!parentFolder) {
           throw new NotFoundException('Parent folder not found');
         }
-        fullPath = parentFolder.path;
+        fullPath = parentFolderPath;
       }
 
       const folderPath = `${fullPath}/${folderName}`;

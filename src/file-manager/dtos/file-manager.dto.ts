@@ -1,9 +1,9 @@
 import { IsNotEmpty, IsString } from 'class-validator';
 
 export class createFolderDTO {
-  @IsString()
+  @IsString({message: 'Name must be a string'})
+  @IsNotEmpty()
   name: string;
   @IsString()
-  parentFolder: string;
-
+  parentFolderPath?: string;
 }
