@@ -30,3 +30,7 @@ export interface initializeRootFolder {
   data?: Folder;
   state: boolean;
 }
+export interface deleteFolderAndContents {
+  statusCode: HttpStatus;
+  message?: string;
+}

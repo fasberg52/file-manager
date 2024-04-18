@@ -4,10 +4,14 @@ import { MongooseModule } from '@nestjs/mongoose';
 import { FolderSchema } from './models/file-manager.model';
 import { FileSystemService } from 'src/fileSystem/folder.fs.service';
 import { FolderController } from './folder.controller';
+import { FileSchema } from 'src/files/model/files.model';
 
 @Module({
   imports: [
-    MongooseModule.forFeature([{ name: 'Folder', schema: FolderSchema }]),
+    MongooseModule.forFeature([
+      { name: 'Folder', schema: FolderSchema },
+      { name: 'File', schema: FileSchema },
+    ]),
   ],
   controllers: [FolderController],
   providers: [FolderService, FileSystemService],

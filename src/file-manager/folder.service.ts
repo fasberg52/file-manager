@@ -7,10 +7,12 @@ import {
 import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
 import { FileSystemService } from '../fileSystem/folder.fs.service';
-import { Folder, FolderSchema } from './models/file-manager.model';
+import { Folder } from './models/file-manager.model';
+import { File } from '../files/model/files.model';
 import { createFolderDTO } from './dtos/file-manager.dto';
 import {
   FolderCreateResponse,
+  deleteFolderAndContents,
   getFolder,
   initializeRootFolder,
 } from './interface/createFolder';
@@ -21,6 +23,7 @@ import { UpdateFolderDTO } from './dtos/updateFolder.dto';
 export class FolderService {
   constructor(
     @InjectModel(Folder.name) private readonly folderModel: Model<Folder>,
+    @InjectModel(File.name) private readonly fileModel: Model<File>,
     private readonly fileSystemService: FileSystemService,
   ) {}
 
@@ -124,7 +127,7 @@ export class FolderService {
       };
     } catch (error) {
       console.error(`Error while creating folder: ${error.message}`);
-      if (error instanceof ConflictException) {
+      if (error instanceof ConflictException || NotFoundException) {
         throw error;
       }
       throw new InternalServerErrorException('Failed to create folder');
@@ -199,6 +202,9 @@ export class FolderService {
         data: folder.toObject(),
       };
     } catch (error) {
+      if (error instanceof NotFoundException) {
+        throw error;
+      }
       console.error(`Error while getting folder by path: ${error.message}`);
       throw new InternalServerErrorException('Failed to fetch folder');
     }
@@ -231,8 +237,56 @@ export class FolderService {
       throw new InternalServerErrorException('Failed to update folder');
     }
   }
+
+  async deleteFolders(folderPaths: string[]): Promise<deleteFolderAndContents> {
+    try {
+      for (const folderPath of folderPaths) {
+        await this.deleteFolderAndContents(folderPath);
+      }
+      return {
+        statusCode: HttpStatus.OK,
+        message: 'مسیر با موفقیت حذف شد',
+      };
+    } catch (error) {
+      if (error instanceof NotFoundException) {
+        throw error;
+      }
+      console.error(`Error while deleting folders: ${error.message}`);
+      throw new InternalServerErrorException('Failed to delete folders');
+    }
+  }
+
+  private async deleteFolderAndContents(folderPath: string): Promise<void> {
+    try {
+      const folder = await this.folderModel.findOne({ path: folderPath });
+      if (!folder) {
+        throw new NotFoundException('Folder not found');
+      }
+      await this.fileModel.deleteMany({ folder: folder._id });
+
+      // Recursively delete subfolders and their contents
+      const subfolders = await this.folderModel.find({
+        parentFolder: folder._id,
+      });
+      for (const subfolder of subfolders) {
+        await this.deleteFolderAndContents(subfolder.path);
+      }
+
+      await this.fileSystemService.deleteFolder(folderPath);
+      await this.folderModel.findByIdAndDelete(folder._id);
+    } catch (error) {
+      if (error instanceof NotFoundException) {
+        throw error;
+      }
+      console.error(`Error while deleteFolderAndContents: ${error.message}`);
+
+      throw new InternalServerErrorException('Internal Server Error');
+    }
+  }
+
   // async deleteFolder(folderPath: string): Promise<void> {
   //   try {
+  //     console.log(`folderPath >>>>> ${folderPath}`);
   //     const folder = await this.folderModel.findOne({
   //       path: folderPath,
   //     });
@@ -242,14 +296,19 @@ export class FolderService {
   //     const parentFolder = await this.folderModel.findOne({
   //       _id: folder.parentFolder,
   //     });
-  //     if (!parentFolder) {
-  //       throw new NotFoundException('Parent folder not found');
+  //     console.log(`parentFolder ${parentFolder}`);
+
+  //     if (parentFolder) {
+  //       const index = parentFolder.folders.indexOf(folder._id);
+  //       if (index > -1) {
+  //         parentFolder.folders.splice(index, 1);
+  //         await parentFolder.save();
+  //       }
   //     }
-  //     const index = parentFolder.folders.indexOf(folder._id);
-  //     parentFolder.folders.splice(index, 1);
-  //     await parentFolder.save();
+  //     console.log(`After parentFolder ${parentFolder}`);
+
   //     await this.fileSystemService.deleteFolder(folderPath);
-  //     await folder.remove();
+  //     await this.folderModel.findByIdAndDelete(folder._id); // This replaces folder.remove()
   //     return;
   //   } catch (error) {
   //     if (error instanceof NotFoundException) {
@@ -260,21 +319,26 @@ export class FolderService {
   //   }
   // }
 
-  async deleteFolder(folderPath: string): Promise<void> {
-    try {
-      const deletedFolder = await this.folderModel.findOneAndDelete({
-        path: folderPath,
-      });
+  // async deleteFolder(path: string): Promise<void> {
+  //   try {
+  //     console.log(path);
 
-      if (!deletedFolder) {
-        throw new NotFoundException(`Folder not found at path ${folderPath}`);
-      }
-      await this.fileSystemService.deleteFolder(folderPath);
-    } catch (error) {
-      console.error(
-        `Error in FolderService for deleteFolder: ${error.message}`,
-      );
-      throw new InternalServerErrorException('Failed to delete folder');
-    }
-  }
+  //     const deletedFolder = await this.folderModel.findOneAndDelete({
+  //       path: path,
+  //     });
+
+  //     if (!deletedFolder) {
+  //       throw new NotFoundException(`Folder not found at path ${path}`);
+  //     }
+  //     await this.fileSystemService.deleteFolder(path);
+  //   } catch (error) {
+  //     console.error(
+  //       `Error in FolderService for deleteFolder: ${error.message}`,
+  //     );
+  //     if (error instanceof NotFoundException) {
+  //       throw error;
+  //     }
+  //     throw new InternalServerErrorException('Failed to delete folder');
+  //   }
+  // }
 }
