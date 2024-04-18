@@ -32,7 +32,7 @@ export class FolderService {
       });
       await rootFolder.save();
 
-      await this.fileSystemService.createDirectory('./root');
+      await this.fileSystemService.createFolder('./root');
 
       return {
         statusCode: HttpStatus.OK,
@@ -76,6 +76,7 @@ export class FolderService {
     createFolderDTO: createFolderDTO,
   ): Promise<FolderCreateResponse> {
     try {
+      
       const rootPath = `./root`;
       const folderName = createFolderDTO.name;
       let fullPath = rootPath;
@@ -90,10 +91,11 @@ export class FolderService {
       }
 
       if (createFolderDTO.parentFolderPath) {
-        const parentFolderPath = createFolderDTO.parentFolderPath;
+        const parentFolderPath = createFolderDTO.parentFolderPath; //./root/folderA
         parentFolder = await this.folderModel.findOne({
           path: parentFolderPath,
         });
+        
         if (!parentFolder) {
           throw new NotFoundException('Parent folder not found');
         }
@@ -101,7 +103,7 @@ export class FolderService {
       }
 
       const folderPath = `${fullPath}/${folderName}`;
-      await this.fileSystemService.createFolder(folderPath);
+     
 
       const folder = new this.folderModel({
         name: folderName,
@@ -111,9 +113,12 @@ export class FolderService {
       await folder.save();
 
       if (parentFolder) {
+        
+
         parentFolder.folders.push(folder._id);
         await parentFolder.save();
       }
+      await this.fileSystemService.createFolder(folderPath);
 
       return {
         statusCode: HttpStatus.CREATED,
@@ -202,16 +207,8 @@ export class FolderService {
     }
   }
 
-  async checkRootFolder(): Promise<{ exists: boolean; rootFolderId?: string }> {
-    try {
-      const rootFolder = await this.folderModel.findOne({ name: 'Root' });
-      if (rootFolder) {
-        return { exists: true, rootFolderId: rootFolder._id.toString() };
-      }
-      return { exists: false };
-    } catch (error) {
-      console.error(`Error while checking root folder: ${error.message}`);
-      throw new InternalServerErrorException('Failed to check root folder');
-    }
+  async updateFolder(){
+      
   }
+
 }

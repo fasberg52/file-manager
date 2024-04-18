@@ -42,9 +42,4 @@ export class FolderController {
     return this._folderService.getFolderByPath(path.path);
   }
 
-  @Get('/checkRootFolder')
-  async checkRootFolder(): Promise<boolean> {
-    const rootFolderCheck = await this._folderService.checkRootFolder();
-    return rootFolderCheck.exists;
-  }
 }

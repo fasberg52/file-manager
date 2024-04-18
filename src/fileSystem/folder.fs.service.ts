@@ -13,7 +13,7 @@ export class FileSystemService {
         folders += `${folder}/`;
 
         if (!fs.existsSync(folders)) {
-          fs.mkdirSync(folders, { recursive: true });
+          fs.mkdirSync(folders);
         }
 
         return folders;
@@ -29,6 +29,15 @@ export class FileSystemService {
     } catch (error) {
       throw new Error(
         `Failed to create directory at ${path}: ${error.message}`,
+      );
+    }
+  }
+  async renameFolder(oldPath: string, newPath: string): Promise<void> {
+    try {
+      await fs.promises.rename(oldPath, newPath);
+    } catch (error) {
+      throw new Error(
+        `Failed to rename folder from ${oldPath} to ${newPath}: ${error.message}`,
       );
     }
   }
