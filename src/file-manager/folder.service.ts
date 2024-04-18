@@ -231,4 +231,50 @@ export class FolderService {
       throw new InternalServerErrorException('Failed to update folder');
     }
   }
+  // async deleteFolder(folderPath: string): Promise<void> {
+  //   try {
+  //     const folder = await this.folderModel.findOne({
+  //       path: folderPath,
+  //     });
+  //     if (!folder) {
+  //       throw new NotFoundException('Folder not found');
+  //     }
+  //     const parentFolder = await this.folderModel.findOne({
+  //       _id: folder.parentFolder,
+  //     });
+  //     if (!parentFolder) {
+  //       throw new NotFoundException('Parent folder not found');
+  //     }
+  //     const index = parentFolder.folders.indexOf(folder._id);
+  //     parentFolder.folders.splice(index, 1);
+  //     await parentFolder.save();
+  //     await this.fileSystemService.deleteFolder(folderPath);
+  //     await folder.remove();
+  //     return;
+  //   } catch (error) {
+  //     if (error instanceof NotFoundException) {
+  //       throw error;
+  //     }
+  //     console.error(`Error while deleting folder: ${error.message}`);
+  //     throw new InternalServerErrorException('Failed to delete folder');
+  //   }
+  // }
+
+  async deleteFolder(folderPath: string): Promise<void> {
+    try {
+      const deletedFolder = await this.folderModel.findOneAndDelete({
+        path: folderPath,
+      });
+
+      if (!deletedFolder) {
+        throw new NotFoundException(`Folder not found at path ${folderPath}`);
+      }
+      await this.fileSystemService.deleteFolder(folderPath);
+    } catch (error) {
+      console.error(
+        `Error in FolderService for deleteFolder: ${error.message}`,
+      );
+      throw new InternalServerErrorException('Failed to delete folder');
+    }
+  }
 }
