@@ -41,4 +41,20 @@ export class FileSystemService {
       );
     }
   }
+
+  async deleteFolder(folderPath: string): Promise<void> {
+    try {
+      folderPath.split('/').reduce((folders, folder) => {
+        folders += `${folder}/`;
+        if (fs.existsSync(folders)) {
+          fs.rmdirSync(folders, { recursive: true });
+        }
+
+        return folders;
+      }, '');
+    } catch (error) {
+      console.log(`Error in FileSystemService for deleteFolder: `);
+      throw new InternalServerErrorException('Failed to delete folder');
+    }
+  }
 }

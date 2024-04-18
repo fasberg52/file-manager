@@ -1,4 +1,4 @@
-import { Controller, Post, Body, Get, Param } from '@nestjs/common';
+import { Controller, Post, Body, Get, Param, Put } from '@nestjs/common';
 import { FolderService } from './folder.service';
 import { createFolderDTO } from './dtos/file-manager.dto';
 import {
@@ -6,6 +6,7 @@ import {
   PathRequest,
   getFolder,
 } from './interface/createFolder';
+import { UpdateFolderDTO } from './dtos/updateFolder.dto';
 
 @Controller('/folder')
 export class FolderController {
@@ -42,4 +43,8 @@ export class FolderController {
     return this._folderService.getFolderByPath(path.path);
   }
 
+  @Put('/')
+  async updateFolder(@Body() updateFolderDTO: UpdateFolderDTO) {
+    return this._folderService.updateFolder(updateFolderDTO);
+  }
 }

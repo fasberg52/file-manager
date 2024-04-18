@@ -15,6 +15,7 @@ import {
   initializeRootFolder,
 } from './interface/createFolder';
 import { HttpStatus } from '@nestjs/common';
+import { UpdateFolderDTO } from './dtos/updateFolder.dto';
 
 @Injectable()
 export class FolderService {
@@ -76,7 +77,6 @@ export class FolderService {
     createFolderDTO: createFolderDTO,
   ): Promise<FolderCreateResponse> {
     try {
-      
       const rootPath = `./root`;
       const folderName = createFolderDTO.name;
       let fullPath = rootPath;
@@ -95,7 +95,7 @@ export class FolderService {
         parentFolder = await this.folderModel.findOne({
           path: parentFolderPath,
         });
-        
+
         if (!parentFolder) {
           throw new NotFoundException('Parent folder not found');
         }
@@ -103,7 +103,6 @@ export class FolderService {
       }
 
       const folderPath = `${fullPath}/${folderName}`;
-     
 
       const folder = new this.folderModel({
         name: folderName,
@@ -113,8 +112,6 @@ export class FolderService {
       await folder.save();
 
       if (parentFolder) {
-        
-
         parentFolder.folders.push(folder._id);
         await parentFolder.save();
       }
@@ -207,8 +204,31 @@ export class FolderService {
     }
   }
 
-  async updateFolder(){
-      
-  }
+  async updateFolder(updateFolderDTO: UpdateFolderDTO) {
+    try {
+      const { newName, oldPath, newPath } = updateFolderDTO;
+      const folder = await this.folderModel.findOneAndUpdate(
+        { path: oldPath },
+        { name: newName, path: newPath },
+        { new: true },
+      );
 
+      if (!folder) {
+        throw new NotFoundException(`مسیر پیدا نشد ${oldPath}`);
+      }
+
+      await folder.save();
+
+      await this.fileSystemService.renameFolder(oldPath, newPath);
+      return {
+        statusCode: HttpStatus.OK,
+      };
+    } catch (error) {
+      if (error instanceof NotFoundException) {
+        throw error;
+      }
+      console.error(`Error while updating folder: ${error.message}`);
+      throw new InternalServerErrorException('Failed to update folder');
+    }
+  }
 }
