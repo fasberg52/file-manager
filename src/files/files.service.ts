@@ -1,16 +1,23 @@
-import { HttpStatus, Injectable } from '@nestjs/common';
+import {
+  HttpStatus,
+  Injectable,
+  InternalServerErrorException,
+  NotFoundException,
+} from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
 import { File, SaveFile, UpdateFile } from './interfaces/file.interface';
 import { Folder } from 'src/file-manager/models/file-manager.model';
 import { uniqueFilename } from './multer.config';
 import { UpdateFileDTO } from './dtos/file.dto';
+import { FileSystemService } from 'src/fileSystem/file.fs.service';
 
 @Injectable()
 export class FileService {
   constructor(
     @InjectModel('File') private readonly fileModel: Model<File>,
     @InjectModel('Folder') private readonly folderModel: Model<Folder>,
+    private readonly fileSystemService: FileSystemService,
   ) {}
   async saveFile(
     file: Express.Multer.File,
@@ -46,14 +53,30 @@ export class FileService {
   async updateFile(updateFolderDTO: UpdateFileDTO): Promise<UpdateFile> {
     try {
       const { newName, oldPath, newPath } = updateFolderDTO;
-      const file = await this.fileModel.findOneAndUpdate(
+      console.log(newName + `---` + oldPath + `---` + newPath);
+      const existingFile = await this.fileModel.findOne({ path: oldPath });
+      if (!existingFile) {
+        throw new NotFoundException('File not found');
+      }
+      const updatedFile = await this.fileModel.findOneAndUpdate(
         { path: oldPath },
         { name: newName, path: newPath },
+        { new: true },
       );
+
+      await this.fileSystemService.renameFile(oldPath, newPath);
+      console.log('updatedFile  >> ' + updatedFile);
+
       return {
         statusCode: HttpStatus.OK,
         message: 'فایل ویرایش شد',
       };
-    } catch (error) {}
+    } catch (error) {
+      if (error instanceof NotFoundException) {
+        throw error;
+      }
+      console.log(`Error in UpdateFile ${error}`);
+      throw new InternalServerErrorException('Internal Server Error');
+    }
   }
 }

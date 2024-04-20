@@ -5,9 +5,11 @@ import {
   UseInterceptors,
   Body,
   BadRequestException,
+  Put,
 } from '@nestjs/common';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { FileService } from './files.service';
+import { UpdateFileDTO } from './dtos/file.dto';
 
 @Controller('files')
 export class FilesController {
@@ -19,8 +21,6 @@ export class FilesController {
     @UploadedFile() file: Express.Multer.File,
     @Body('folderPath') folderPath: string,
   ) {
-    //console.log(`file >>> ${file.originalname}`);
-    //console.log(`folderPath >>> ${folderPath}`);
     try {
       if (!folderPath) {
         throw new BadRequestException('Folder path is required');
@@ -31,5 +31,9 @@ export class FilesController {
       console.log(`error in uploadFile >>> ${error}`);
       return { message: 'Error uploading file', error: error.message };
     }
+  }
+  @Put('upload')
+  async updateFile(@Body() updateFolderDTO: UpdateFileDTO) {
+    return this.fileService.updateFile(updateFolderDTO);
   }
 }
