@@ -55,7 +55,7 @@ export class FolderController {
   async updateFolder(@Body() updateFolderDTO: UpdateFolderDTO) {
     return this._folderService.updateFolder(updateFolderDTO);
   }
-  @Delete('/')
+  @Post('/delete')
   async deleteFolder(@Body() path: PathRequest) {
     console.log(`OOO ` + path.path);
     return this._folderService.deleteFolders([path.path]);

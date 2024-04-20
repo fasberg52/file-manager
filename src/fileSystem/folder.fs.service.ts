@@ -6,7 +6,7 @@ const asyncMkdir = promisify(fs.mkdir);
 const asyncExists = promisify(fs.exists);
 
 @Injectable()
-export class FileSystemService {
+export class FolderSystemService {
   async createFolder(folderPath: string): Promise<void> {
     try {
       folderPath.split('/').reduce((folders, folder) => {
@@ -19,7 +19,7 @@ export class FileSystemService {
         return folders;
       }, '');
     } catch (error) {
-      console.log(`Error in FileSystemService for createFolder: `);
+      console.log(`Error in FolderSystemService for createFolder: `);
       throw new InternalServerErrorException('Failed to create folder');
     }
   }
@@ -56,7 +56,7 @@ export class FileSystemService {
   //       return folders;
   //     }, '');
   //   } catch (error) {
-  //     console.log(`Error in FileSystemService for deleteFolder: ${error}`);
+  //     console.log(`Error in FolderSystemService for deleteFolder: ${error}`);
   //     throw new InternalServerErrorException('Failed to delete folder');
   //   }
   // }
@@ -67,7 +67,7 @@ export class FileSystemService {
         await fs.promises.rm(path, { recursive: true, force: true });
       }
     } catch (error) {
-      console.error(`Error in FileSystemService for deleteFolder: ${error}`);
+      console.error(`Error in FolderSystemService for deleteFolder: ${error}`);
       throw new InternalServerErrorException('Failed to delete folder');
     }
   }

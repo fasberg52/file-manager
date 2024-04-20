@@ -6,7 +6,7 @@ import {
 } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
-import { FileSystemService } from '../fileSystem/folder.fs.service';
+import { FolderSystemService } from '../fileSystem/folder.fs.service';
 import { Folder } from './models/file-manager.model';
 import { File } from '../files/model/files.model';
 import { createFolderDTO } from './dtos/file-manager.dto';
@@ -24,7 +24,7 @@ export class FolderService {
   constructor(
     @InjectModel(Folder.name) private readonly folderModel: Model<Folder>,
     @InjectModel(File.name) private readonly fileModel: Model<File>,
-    private readonly fileSystemService: FileSystemService,
+    private readonly FolderSystemService: FolderSystemService,
   ) {}
 
   async createInitializeRootFolder(): Promise<initializeRootFolder> {
@@ -36,7 +36,7 @@ export class FolderService {
       });
       await rootFolder.save();
 
-      await this.fileSystemService.createFolder('./root');
+      await this.FolderSystemService.createFolder('./root');
 
       return {
         statusCode: HttpStatus.OK,
@@ -118,7 +118,7 @@ export class FolderService {
         parentFolder.folders.push(folder._id);
         await parentFolder.save();
       }
-      await this.fileSystemService.createFolder(folderPath);
+      await this.FolderSystemService.createFolder(folderPath);
 
       return {
         statusCode: HttpStatus.CREATED,
@@ -225,7 +225,7 @@ export class FolderService {
 
       await folder.save();
 
-      await this.fileSystemService.renameFolder(oldPath, newPath);
+      await this.FolderSystemService.renameFolder(oldPath, newPath);
       return {
         statusCode: HttpStatus.OK,
       };
@@ -272,7 +272,7 @@ export class FolderService {
         await this.deleteFolderAndContents(subfolder.path);
       }
 
-      await this.fileSystemService.deleteFolder(folderPath);
+      await this.FolderSystemService.deleteFolder(folderPath);
       await this.folderModel.findByIdAndDelete(folder._id);
     } catch (error) {
       if (error instanceof NotFoundException) {
@@ -307,7 +307,7 @@ export class FolderService {
   //     }
   //     console.log(`After parentFolder ${parentFolder}`);
 
-  //     await this.fileSystemService.deleteFolder(folderPath);
+  //     await this.FolderSystemService.deleteFolder(folderPath);
   //     await this.folderModel.findByIdAndDelete(folder._id); // This replaces folder.remove()
   //     return;
   //   } catch (error) {
@@ -330,7 +330,7 @@ export class FolderService {
   //     if (!deletedFolder) {
   //       throw new NotFoundException(`Folder not found at path ${path}`);
   //     }
-  //     await this.fileSystemService.deleteFolder(path);
+  //     await this.FolderSystemService.deleteFolder(path);
   //   } catch (error) {
   //     console.error(
   //       `Error in FolderService for deleteFolder: ${error.message}`,
