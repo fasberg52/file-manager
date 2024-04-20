@@ -1,9 +1,10 @@
 import { HttpStatus, Injectable } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
-import { File, SaveFile } from './interfaces/file.interface';
+import { File, SaveFile, UpdateFile } from './interfaces/file.interface';
 import { Folder } from 'src/file-manager/models/file-manager.model';
 import { uniqueFilename } from './multer.config';
+import { UpdateFileDTO } from './dtos/file.dto';
 
 @Injectable()
 export class FileService {
@@ -40,5 +41,19 @@ export class FileService {
       message: 'فایل آپلود شد',
       data: newFile,
     };
+  }
+
+  async updateFile(updateFolderDTO: UpdateFileDTO): Promise<UpdateFile> {
+    try {
+      const { newName, oldPath, newPath } = updateFolderDTO;
+      const file = await this.fileModel.findOneAndUpdate(
+        { path: oldPath },
+        { name: newName, path: newPath },
+      );
+      return {
+        statusCode: HttpStatus.OK,
+        message: 'فایل ویرایش شد',
+      };
+    } catch (error) {}
   }
 }
