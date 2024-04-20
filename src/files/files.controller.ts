@@ -13,7 +13,7 @@ import {
 } from '@nestjs/common';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { FileService } from './files.service';
-import { UpdateFileDTO } from './dtos/file.dto';
+import { DeleteFileDTO, UpdateFileDTO } from './dtos/file.dto';
 import { FileRequest } from './interfaces/file.interface';
 import * as path from 'path';
 import { Response } from 'express';
@@ -44,8 +44,8 @@ export class FilesController {
     return this.fileService.updateFile(updateFolderDTO);
   }
   @Post('delete')
-  async deleteFiles(@Body() { filePaths }: FileRequest) {
-    return this.fileService.deleteFiles(filePaths);
+  async deleteFiles(@Body() deleteFileDTO: DeleteFileDTO) {
+    return this.fileService.deleteFiles(deleteFileDTO);
   }
   @Get('open')
   async openFile(@Query('path') path: string) {

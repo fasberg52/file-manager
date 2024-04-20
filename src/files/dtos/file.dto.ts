@@ -1,4 +1,4 @@
-import { IsString } from 'class-validator';
+import { IsArray, IsString } from 'class-validator';
 
 export class UpdateFileDTO {
   @IsString()
@@ -7,4 +7,8 @@ export class UpdateFileDTO {
   newPath: string;
   @IsString()
   oldPath: string;
+}
+export class DeleteFileDTO {
+  @IsArray()
+  filePaths: [];
 }

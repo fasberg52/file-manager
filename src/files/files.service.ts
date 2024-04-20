@@ -14,7 +14,7 @@ import {
 } from './interfaces/file.interface';
 import { Folder } from 'src/file-manager/models/file-manager.model';
 import { uniqueFilename } from './multer.config';
-import { UpdateFileDTO } from './dtos/file.dto';
+import { DeleteFileDTO, UpdateFileDTO } from './dtos/file.dto';
 import { FileSystemService } from 'src/fileSystem/file.fs.service';
 import { Response } from 'express';
 import * as path from 'path';
@@ -113,8 +113,11 @@ export class FileService {
   //   }
   // }
 
-  async deleteFiles(filePaths: string[]): Promise<FileServiceResponse> {
+  async deleteFiles(
+    deleteFileDTO: DeleteFileDTO,
+  ): Promise<FileServiceResponse> {
     try {
+      const { filePaths } = deleteFileDTO;
       console.log(filePaths);
       if (!Array.isArray(filePaths)) {
         throw new Error('filePaths must be an array');
