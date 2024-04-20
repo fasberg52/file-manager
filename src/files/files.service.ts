@@ -16,7 +16,8 @@ import { Folder } from 'src/file-manager/models/file-manager.model';
 import { uniqueFilename } from './multer.config';
 import { UpdateFileDTO } from './dtos/file.dto';
 import { FileSystemService } from 'src/fileSystem/file.fs.service';
-
+import { Response } from 'express';
+import * as path from 'path';
 @Injectable()
 export class FileService {
   constructor(
@@ -141,5 +142,32 @@ export class FileService {
       console.error(`Error while deleting files: ${error.message}`);
       throw new InternalServerErrorException('Failed to delete files');
     }
+  }
+  async openFile(path: string): Promise<void> {
+    try {
+      const file = await this.fileModel.findOne({ path: path });
+      if (!file) {
+        throw new NotFoundException(`File at path ${path} not found`);
+      }
+      await this.fileSystemService.openFile(path);
+      console.log(file);
+    } catch (error) {
+      console.error(`Error while opening file: ${error.message}`);
+      throw new InternalServerErrorException('Failed to open file');
+    }
+  }
+
+  async serveFile(filePath: string, res: Response): Promise<void> {
+    await this.fileSystemService.serveFile(filePath, res as any);
+    res.sendFile(filePath);
+  }
+  getBaseDirectory(): string {
+    const baseDir = process.env.FILES_BASE_DIRECTORY;
+    if (!baseDir) {
+      throw new Error(
+        'Base directory is not defined in the environment variables.',
+      );
+    }
+    return path.resolve(baseDir);
   }
 }
