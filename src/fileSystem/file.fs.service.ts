@@ -10,4 +10,14 @@ export class FileSystemService {
       throw new InternalServerErrorException(error);
     }
   }
+  async deleteFiles(paths: string[]): Promise<void> {
+    try {
+      await paths.reduce(async (previousPromise, path) => {
+        await previousPromise;
+        return fs.promises.unlink(path);
+      }, Promise.resolve());
+    } catch (error) {
+      throw new InternalServerErrorException(error);
+    }
+  }
 }
