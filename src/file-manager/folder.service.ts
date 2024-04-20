@@ -187,7 +187,7 @@ export class FolderService {
         })
         .populate({
           path: 'files',
-          select: 'originalName mimeType size',
+          select: 'originalName mimeType size path',
         })
         .exec();
 

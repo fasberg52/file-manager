@@ -20,4 +20,12 @@ export class FileSystemService {
       throw new InternalServerErrorException(error);
     }
   }
+
+  async openFile(path: string): Promise<void> {
+    try {
+      await fs.promises.open(path, 'r');
+    } catch (error) {
+      throw new InternalServerErrorException(error);
+    }
+  }
 }

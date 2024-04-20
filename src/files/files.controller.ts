@@ -10,6 +10,7 @@ import {
 import { FileInterceptor } from '@nestjs/platform-express';
 import { FileService } from './files.service';
 import { UpdateFileDTO } from './dtos/file.dto';
+import { FileRequest } from './interfaces/file.interface';
 
 @Controller('files')
 export class FilesController {
@@ -35,5 +36,9 @@ export class FilesController {
   @Put('upload')
   async updateFile(@Body() updateFolderDTO: UpdateFileDTO) {
     return this.fileService.updateFile(updateFolderDTO);
+  }
+  @Post('delete')
+  async deleteFiles(@Body() { filePaths }: FileRequest) {
+    return this.fileService.deleteFiles(filePaths);
   }
 }

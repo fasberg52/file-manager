@@ -6,7 +6,12 @@ import {
 } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
-import { File, SaveFile, UpdateFile } from './interfaces/file.interface';
+import {
+  File,
+  FileServiceResponse,
+  SaveFile,
+  UpdateFile,
+} from './interfaces/file.interface';
 import { Folder } from 'src/file-manager/models/file-manager.model';
 import { uniqueFilename } from './multer.config';
 import { UpdateFileDTO } from './dtos/file.dto';
@@ -60,7 +65,7 @@ export class FileService {
       }
       const updatedFile = await this.fileModel.findOneAndUpdate(
         { path: oldPath },
-        { name: newName, path: newPath },
+        { name: newName, originalName: newName, path: newPath },
         { new: true },
       );
 
@@ -79,31 +84,59 @@ export class FileService {
       throw new InternalServerErrorException('Internal Server Error');
     }
   }
-  async deleteFiles(filePaths: string[]): Promise<void> {
+  // async deleteFiles(filePaths: string[]): Promise<FileServiceResponse> {
+  //   try {
+  //     console.log(filePaths);
+  //     if (!Array.isArray(filePaths)) {
+  //       throw new Error('filePaths must be an array');
+  //     }
+  //     await Promise.all(
+  //       filePaths.map(async (filePath) => {
+  //         console.log(`filePath>> ${filePath}`);
+  //         const file = await this.fileModel.findOne({ path: filePath });
+  //         if (!file) {
+  //           throw new NotFoundException(`File at path ${filePath} not found`);
+  //         }
+  //         await this.fileModel.deleteOne({ _id: file._id });
+  //         await this.fileSystemService.deleteFiles([filePath]);
+  //       }),
+  //     );
+
+  //     return {
+  //       message: 'فایل با موفقیت حذف شد',
+  //       statusCode: HttpStatus.OK,
+  //     };
+  //   } catch (error) {
+  //     console.error(`Error while deleting files: ${error.message}`);
+  //     throw new InternalServerErrorException('Failed to delete files');
+  //   }
+  // }
+
+  async deleteFiles(filePaths: string[]): Promise<FileServiceResponse> {
     try {
+      console.log(filePaths);
+      if (!Array.isArray(filePaths)) {
+        throw new Error('filePaths must be an array');
+      }
       await Promise.all(
         filePaths.map(async (filePath) => {
           const file = await this.fileModel.findOne({ path: filePath });
           if (!file) {
             throw new NotFoundException(`File at path ${filePath} not found`);
           }
-
-          await this.fileSystemService.deleteFiles(filePaths);
-
-          const folderId = file.folder;
-          const folder = await this.folderModel.findById(folderId);
-          if (!folder) {
-            throw new NotFoundException(`Folder with ID ${folderId} not found`);
-          }
-          const index = folder.files.indexOf(file._id);
-          if (index !== -1) {
-            folder.files.splice(index, 1);
-            await folder.save();
-          }
-
-          await this.fileModel.findByIdAndDelete(file._id);
+          await this.folderModel.updateOne(
+            { _id: file.folder },
+            { $pull: { files: file._id } },
+          );
+          await this.fileSystemService.deleteFiles([filePath]);
+          await this.fileModel.deleteOne({ _id: file._id });
         }),
       );
+
+      return {
+        message: 'فایل با موفقیت حذف شد',
+        statusCode: HttpStatus.OK,
+      };
     } catch (error) {
       console.error(`Error while deleting files: ${error.message}`);
       throw new InternalServerErrorException('Failed to delete files');
