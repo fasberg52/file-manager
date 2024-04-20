@@ -79,4 +79,34 @@ export class FileService {
       throw new InternalServerErrorException('Internal Server Error');
     }
   }
+  async deleteFiles(filePaths: string[]): Promise<void> {
+    try {
+      await Promise.all(
+        filePaths.map(async (filePath) => {
+          const file = await this.fileModel.findOne({ path: filePath });
+          if (!file) {
+            throw new NotFoundException(`File at path ${filePath} not found`);
+          }
+
+          await this.fileSystemService.deleteFiles(filePaths);
+
+          const folderId = file.folder;
+          const folder = await this.folderModel.findById(folderId);
+          if (!folder) {
+            throw new NotFoundException(`Folder with ID ${folderId} not found`);
+          }
+          const index = folder.files.indexOf(file._id);
+          if (index !== -1) {
+            folder.files.splice(index, 1);
+            await folder.save();
+          }
+
+          await this.fileModel.findByIdAndDelete(file._id);
+        }),
+      );
+    } catch (error) {
+      console.error(`Error while deleting files: ${error.message}`);
+      throw new InternalServerErrorException('Failed to delete files');
+    }
+  }
 }
