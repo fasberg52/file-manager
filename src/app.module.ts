@@ -6,6 +6,7 @@ import { MongooseModule } from '@nestjs/mongoose';
 
 import { FilesModule } from './files/files.module';
 import { ConfigModule } from '@nestjs/config';
+import { HlsModule } from './hls/hls.module';
 
 @Module({
   imports: [
@@ -15,6 +16,7 @@ import { ConfigModule } from '@nestjs/config';
     ConfigModule.forRoot({
       envFilePath: '.env',
     }),
+    HlsModule,
   ],
   controllers: [AppController],
   providers: [AppService],
