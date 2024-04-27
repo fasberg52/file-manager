@@ -183,4 +183,23 @@ export class FolderService {
       throw new InternalServerErrorException('Failed to check root folder');
     }
   }
+async deleteFolderById(){
+  try {
+    const rootFolder = await this.folderModel.findOne({ name: 'Root' });
+    if (rootFolder) {
+      await this.folderModel.findByIdAndDelete(rootFolder._id);
+      return {
+        statusCode: HttpStatus.OK,
+        message: 'Folder deleted successfully',
+      };
+    }
+    return {
+      statusCode: HttpStatus.NOT_FOUND,
+      message: 'Root folder not found',
+    };
+  } catch (error) {
+    console.error(`Error while deleting folder: ${error.message}`);
+    throw new InternalServerErrorException('Failed to delete folder');
+  }
+}
 }
