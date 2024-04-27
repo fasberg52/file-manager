@@ -36,7 +36,9 @@ export class FilesController {
       return await this.fileService.saveFile(file, folderPath);
     } catch (error) {
       console.log(`error in uploadFile >>> ${error}`);
-      return { message: 'Error uploading file', error: error.message };
+      if (error instanceof Error) {
+        return { message: 'Error uploading file', error: error.message };
+      }
     }
   }
   @Put('upload')

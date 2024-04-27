@@ -28,7 +28,7 @@ export class FolderSystemService {
       await fs.promises.mkdir(path, { recursive: true });
     } catch (error) {
       throw new Error(
-        `Failed to create directory at ${path}: ${error.message}`,
+        `Failed to create directory at ${path}: ${(error as Error).message}`,
       );
     }
   }
@@ -37,7 +37,9 @@ export class FolderSystemService {
       await fs.promises.rename(oldPath, newPath);
     } catch (error) {
       throw new Error(
-        `Failed to rename folder from ${oldPath} to ${newPath}: ${error.message}`,
+        `Failed to rename folder from ${oldPath} to ${newPath}: ${
+          (error as Error).message
+        }`,
       );
     }
   }

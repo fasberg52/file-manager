@@ -1,4 +1,7 @@
+import { FileSystemService } from 'src/fileSystem/file.fs.service';
 import {
+  BadRequestException,
+  HttpStatus,
   Injectable,
   InternalServerErrorException,
   NotFoundException,
@@ -6,30 +9,42 @@ import {
 import * as ffmpeg from 'fluent-ffmpeg';
 import * as path from 'path';
 import * as fs from 'fs';
-
+import { Response } from 'express';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model, Types } from 'mongoose';
-import { File } from 'src/files/model/files.model';
 import { Hls } from './model/hls.schema';
+import { File } from 'src/files/model/files.model';
+import { Folder } from 'src/file-manager/models/file-manager.model';
+import { convertToHLS, getHLSPathById } from './interface/hls.interface';
+import { GetHLSPathByIdDTO } from './dots/hls.dto';
+
+ffmpeg.setFfmpegPath('C:\\Program Files (x86)\\ffmpeg\\bin\\ffmpeg.exe');
 
 @Injectable()
 export class HlsService {
   constructor(
-    @InjectModel(Hls.name) private readonly hlsModel: Model<Hls>,
-    @InjectModel(File.name) private readonly fileModel: Model<File>,
+    @InjectModel('Hls') private readonly hlsModel: Model<Hls>,
+    @InjectModel('File') private readonly fileModel: Model<File>,
+    private readonly fileSystemService: FileSystemService,
   ) {}
 
-  async generateHLS(fileId: string): Promise<void> {
+  async generateHLS(filePath: string): Promise<convertToHLS> {
     try {
-      const file = await this.fileModel.findById(fileId);
+      const file = await this.fileModel.findOne({ path: filePath });
       if (!file) {
         throw new NotFoundException('File not found');
       }
 
       const outputPath = this.getHLSOutputPath(file);
-      this.createDirectoryIfNeeded(path.dirname(outputPath));
+      console.log(`outputPath >> ${outputPath}`);
+
+      const outputDir = path.dirname(outputPath);
+      if (!fs.existsSync(outputDir)) {
+        fs.mkdirSync(outputDir, { recursive: true });
+      }
 
       await new Promise<void>((resolve, reject) => {
+        console.log(`file.path >> ${file.path}`);
         ffmpeg(file.path)
           .output(outputPath)
           .addOptions([
@@ -39,6 +54,8 @@ export class HlsService {
             '-hls_time 10',
             '-hls_list_size 0',
             '-f hls',
+            '-preset ultrafast',
+            '-threads 0',
           ])
           .outputOptions('-c:a aac')
           .outputOptions('-strict -2')
@@ -58,6 +75,13 @@ export class HlsService {
           })
           .run();
       });
+
+      return {
+        statusCode: HttpStatus.OK,
+        message: 'ok',
+        fileId: file._id.toString(),
+        hlsPath: outputPath,
+      };
     } catch (error) {
       console.error('Error generating HLS:', error);
       throw new InternalServerErrorException('Failed to generate HLS');
@@ -65,29 +89,81 @@ export class HlsService {
   }
 
   private getHLSOutputPath(file: File): string {
-    return path.join(path.dirname(file.path), 'hls', file.originalName);
+    return path.join(
+      path.dirname(file.path),
+      'hlsVideo',
+      file._id.toString(),
+      `${file._id.toString()}.m3u8`,
+    );
   }
 
-  private createDirectoryIfNeeded(directoryPath: string): void {
-    if (!fs.existsSync(directoryPath)) {
-      fs.mkdirSync(directoryPath, { recursive: true });
-    }
-  }
+  // async getHLSPathById(
+  //   getHLSPathByIdDTO: GetHLSPathByIdDTO,
+  //   res: Response,
+  // ): Promise<getHLSPathById> {
+  //   try {
+  //     const { fileId } = getHLSPathByIdDTO;
+  //     console.log(`Searching for HLS path with fileId: ${fileId}`);
 
-  async getHLSPlaylist(fileId: string): Promise<string> {
+  //     // Validate fileId format
+  //     if (!Types.ObjectId.isValid(fileId)) {
+  //       throw new BadRequestException('Invalid fileId format');
+  //     }
+
+  //     const objectId = fileId;
+  //     const hlsDoc = await this.hlsModel.findById(objectId).exec();
+  //     console.log(`Found HLS document: ${hlsDoc}`);
+  //     if (!hlsDoc || !hlsDoc.hlsPath) {
+  //       throw new NotFoundException('HLS file not found');
+  //     }
+  //     const hlsObject: Hls = {
+  //       fileId: objectId,
+  //       hlsPath: hlsDoc.hlsPath,
+  //     };
+  //     await this.fileSystemService.streamFile(hlsDoc.hlsPath, res);
+  //     return { statusCode: HttpStatus.OK, data: hlsObject };
+  //   } catch (error) {
+  //     if (
+  //       error instanceof NotFoundException ||
+  //       error instanceof BadRequestException
+  //     ) {
+  //       throw error;
+  //     }
+  //     console.error('Error getting HLS path:', error);
+  //     throw new InternalServerErrorException('Failed to get HLS path');
+  //   }
+  // }
+
+  async getHLSPathById(
+    getHLSPathByIdDTO: GetHLSPathByIdDTO,
+    res: Response,
+  ): Promise<void> {
     try {
-      const hlsDoc = await this.hlsModel.findOne({
-        fileId: Types.ObjectId.createFromHexString(fileId),
-      });
+      const { fileId } = getHLSPathByIdDTO;
+      console.log(`Searching for HLS path with fileId: ${fileId}`);
+
+      // Validate fileId format
+      if (!Types.ObjectId.isValid(fileId)) {
+        throw new BadRequestException('Invalid fileId format');
+      }
+
+      const objectId = fileId;
+      const hlsDoc = await this.hlsModel.findById(objectId).exec();
+      console.log(`Found HLS document: ${hlsDoc}`);
       if (!hlsDoc || !hlsDoc.hlsPath) {
         throw new NotFoundException('HLS file not found');
       }
 
-      const playlist = `#EXTM3U\n#EXT-X-VERSION:3\n#EXT-X-STREAM-INF:BANDWIDTH=800000,RESOLUTION=640x360\n${hlsDoc.hlsPath}/index.m3u8`;
-      return playlist;
+      await this.fileSystemService.streamFile(hlsDoc.hlsPath, res);
     } catch (error) {
-      console.error('Error getting HLS playlist:', error);
-      throw new InternalServerErrorException('Failed to get HLS playlist');
+      if (
+        error instanceof NotFoundException ||
+        error instanceof BadRequestException
+      ) {
+        throw error;
+      }
+      console.error('Error getting HLS path:', error);
+      throw new InternalServerErrorException('Failed to get HLS path');
     }
   }
 }

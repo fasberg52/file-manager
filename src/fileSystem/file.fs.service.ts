@@ -4,6 +4,7 @@ import {
   NotFoundException,
 } from '@nestjs/common';
 import * as fs from 'fs';
+import { Response } from 'express';
 
 @Injectable()
 export class FileSystemService {
@@ -27,6 +28,7 @@ export class FileSystemService {
 
   async openFile(path: string): Promise<void> {
     try {
+      console.log(`path openFile  >> ${path}`);
       await fs.promises.readFile(path);
     } catch (error) {
       throw new InternalServerErrorException(error);
@@ -38,6 +40,23 @@ export class FileSystemService {
       if (!fs.existsSync(filePath)) {
         throw new NotFoundException('File not found');
       }
+    } catch (error) {
+      if (error instanceof NotFoundException) {
+        throw error;
+      }
+      throw new InternalServerErrorException(error);
+    }
+  }
+  async streamFile(filePath: string, res: Response): Promise<void> {
+    try {
+      if (!fs.existsSync(filePath)) {
+        throw new NotFoundException('File not found');
+      }
+      const stat = fs.statSync(filePath);
+      res.setHeader('Content-Length', stat.size);
+      res.setHeader('Content-Type', 'application/vnd.apple.mpegurl');
+      const readStream = fs.createReadStream(filePath);
+      readStream.pipe(res);
     } catch (error) {
       if (error instanceof NotFoundException) {
         throw error;

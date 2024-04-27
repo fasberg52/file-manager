@@ -142,7 +142,9 @@ export class FileService {
         statusCode: HttpStatus.OK,
       };
     } catch (error) {
-      console.error(`Error while deleting files: ${error.message}`);
+      if (error instanceof Error) {
+        console.error(`Error while deleting files: ${error.message}`);
+      }
       throw new InternalServerErrorException('Failed to delete files');
     }
   }
@@ -155,7 +157,9 @@ export class FileService {
       await this.fileSystemService.openFile(path);
       console.log(file);
     } catch (error) {
-      console.error(`Error while opening file: ${error.message}`);
+      if (error instanceof Error) {
+        console.error(`Error while opening file: ${error.message}`);
+      }
       throw new InternalServerErrorException('Failed to open file');
     }
   }

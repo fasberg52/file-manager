@@ -4,7 +4,7 @@ import { Document, Types } from 'mongoose';
 export type FileDocument = File & Document;
 
 @Schema()
-export class File {
+export class File extends Document {
   @Prop({ required: true })
   originalName: string;
 

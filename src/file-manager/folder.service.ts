@@ -45,7 +45,9 @@ export class FolderService {
         state: true,
       };
     } catch (error) {
-      console.error(`Error while initializing root folder: ${error.message}`);
+      console.error(
+        `Error while initializing root folder: ${(error as Error).message}`,
+      );
       throw new InternalServerErrorException(
         'Failed to initialize root folder',
       );
@@ -69,7 +71,9 @@ export class FolderService {
         };
       }
     } catch (error) {
-      console.error(`Error while initializing root folder: ${error.message}`);
+      console.error(
+        `Error while initializing root folder: ${(error as Error).message}`,
+      );
       throw new InternalServerErrorException(
         'Failed to initialize root folder',
       );
@@ -126,7 +130,7 @@ export class FolderService {
         data: folder.toObject(),
       };
     } catch (error) {
-      console.error(`Error while creating folder: ${error.message}`);
+      console.error(`Error while creating folder: ${(error as Error).message}`);
       if (error instanceof ConflictException || NotFoundException) {
         throw error;
       }
@@ -139,7 +143,9 @@ export class FolderService {
       const folders = await this.folderModel.find().exec();
       return folders;
     } catch (error) {
-      console.error(`Error while fetching folders: ${error.message}`);
+      console.error(
+        `Error while fetching folders: ${(error as Error).message}`,
+      );
       throw new InternalServerErrorException('Failed to fetch folders');
     }
   }
@@ -169,7 +175,9 @@ export class FolderService {
         data: folder.toObject(),
       };
     } catch (error) {
-      console.error(`Error while getting folder by ID: ${error.message}`);
+      console.error(
+        `Error while getting folder by ID: ${(error as Error).message}`,
+      );
       throw new InternalServerErrorException('Failed to fetch folder');
     }
   }
@@ -205,7 +213,9 @@ export class FolderService {
       if (error instanceof NotFoundException) {
         throw error;
       }
-      console.error(`Error while getting folder by path: ${error.message}`);
+      console.error(
+        `Error while getting folder by path: ${(error as Error).message}`,
+      );
       throw new InternalServerErrorException('Failed to fetch folder');
     }
   }
@@ -233,7 +243,9 @@ export class FolderService {
       if (error instanceof NotFoundException) {
         throw error;
       }
-      console.error(`Error while updating folder: ${error.message}`);
+      console.error(
+        `Error while updating folder: ${(error as Error).message}}`,
+      );
       throw new InternalServerErrorException('Failed to update folder');
     }
   }
@@ -251,7 +263,9 @@ export class FolderService {
       if (error instanceof NotFoundException) {
         throw error;
       }
-      console.error(`Error while deleting folders: ${error.message}`);
+      console.error(
+        `Error while deleting folders: ${(error as Error).message}}`,
+      );
       throw new InternalServerErrorException('Failed to delete folders');
     }
   }
@@ -278,7 +292,9 @@ export class FolderService {
       if (error instanceof NotFoundException) {
         throw error;
       }
-      console.error(`Error while deleteFolderAndContents: ${error.message}`);
+      console.error(
+        `Error while deleteFolderAndContents: ${(error as Error).message}}`,
+      );
 
       throw new InternalServerErrorException('Internal Server Error');
     }
@@ -314,7 +330,7 @@ export class FolderService {
   //     if (error instanceof NotFoundException) {
   //       throw error;
   //     }
-  //     console.error(`Error while deleting folder: ${error.message}`);
+  //     console.error(`Error while deleting folder: ${(error as Error).message}`);
   //     throw new InternalServerErrorException('Failed to delete folder');
   //   }
   // }
@@ -333,7 +349,7 @@ export class FolderService {
   //     await this.FolderSystemService.deleteFolder(path);
   //   } catch (error) {
   //     console.error(
-  //       `Error in FolderService for deleteFolder: ${error.message}`,
+  //       `Error in FolderService for deleteFolder: ${(error as Error).message}`,
   //     );
   //     if (error instanceof NotFoundException) {
   //       throw error;
