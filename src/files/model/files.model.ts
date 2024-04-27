@@ -14,8 +14,11 @@ export class File {
   @Prop({ required: true })
   size: number;
 
+  @Prop()
+  path: string;
+
   @Prop({ type: Types.ObjectId, ref: 'Folder' })
-  folder: string; 
+  folder: string;
 }
 
 export const FileSchema = SchemaFactory.createForClass(File);

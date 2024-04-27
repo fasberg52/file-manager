@@ -1,7 +1,20 @@
-import { Controller, Post, Body, Get, Param } from '@nestjs/common';
+import {
+  Controller,
+  Post,
+  Body,
+  Get,
+  Param,
+  Put,
+  Delete,
+} from '@nestjs/common';
 import { FolderService } from './folder.service';
 import { createFolderDTO } from './dtos/file-manager.dto';
-import { FolderCreateResponse, getFolderById } from './interface/createFolder';
+import {
+  FolderCreateResponse,
+  PathRequest,
+  getFolder,
+} from './interface/createFolder';
+import { UpdateFolderDTO } from './dtos/updateFolder.dto';
 
 @Controller('/folder')
 export class FolderController {
@@ -14,19 +27,37 @@ export class FolderController {
     return this._folderService.createFolder(createFolderDTO);
   }
 
+  @Get('/initialize-root-folder')
+  async getInitializeRootFolder() {
+    return this._folderService.getInitializeRootFolder();
+  }
+  @Post('/initialize-root-folder')
+  async postInitializeRootFolder() {
+    return this._folderService.createInitializeRootFolder();
+  }
+
   @Get('/')
   async getAllFolders() {
     return this._folderService.getAll();
   }
 
   @Get('/:id')
-  async getFolderById(@Param('id') id: string): Promise<getFolderById> {
+  async getFolderById(@Param('id') id: string): Promise<getFolder> {
     return this._folderService.getFolderById(id);
   }
 
-  @Get('/checkRootFolder')
-  async checkRootFolder(): Promise<boolean> {
-    const rootFolderCheck = await this._folderService.checkRootFolder();
-    return rootFolderCheck.exists;
+  @Post('/path')
+  async getFolderByPath(@Body() path: PathRequest): Promise<getFolder> {
+    return this._folderService.getFolderByPath(path.path);
+  }
+
+  @Put('/')
+  async updateFolder(@Body() updateFolderDTO: UpdateFolderDTO) {
+    return this._folderService.updateFolder(updateFolderDTO);
+  }
+  @Post('/delete')
+  async deleteFolder(@Body() path: PathRequest) {
+    console.log(`OOO ` + path.path);
+    return this._folderService.deleteFolders([path.path]);
   }
 }

@@ -3,7 +3,7 @@ import * as fs from 'fs';
 
 
 @Injectable()
-export class FileSystemService {
+export class FolderSystemService {
   async createFolder(folderPath: string): Promise<void> {
     try {
       folderPath.split('/').reduce((folders, folder) => {
@@ -16,23 +16,56 @@ export class FileSystemService {
         return folders;
       }, '');
     } catch (error) {
-      console.log(`Error in FileSystemService for createFolder: `);
+      console.log(`Error in FolderSystemService for createFolder: `);
       throw new InternalServerErrorException('Failed to create folder');
     }
   }
-  async deleteFolder(folderPath: string): Promise<void> {
+  async createDirectory(path: string): Promise<void> {
     try {
-      folderPath.split('/').reduce((folders, folder) => {
-        folders += `${folder}/`;
-        if (fs.existsSync(folders)) {
-          fs.rmdirSync(folders);
-        }
-        return folders;
-      }, '');
+      await fs.promises.mkdir(path, { recursive: true });
     } catch (error) {
-      console.log(`Error in FileSystemService for deleteFolder: `);
-      throw new InternalServerErrorException('Failed to delete folder');
+      throw new Error(
+        `Failed to create directory at ${path}: ${error.message}`,
+      );
+    }
+  }
+  async renameFolder(oldPath: string, newPath: string): Promise<void> {
+    try {
+      await fs.promises.rename(oldPath, newPath);
+    } catch (error) {
+      throw new Error(
+        `Failed to rename folder from ${oldPath} to ${newPath}: ${error.message}`,
+      );
     }
   }
 
+  // async deleteFolder(path: string): Promise<void> {
+  //   console.log(`before path ${path}`);
+  //   try {
+  //     path.split('/').reduce((folders, folder) => {
+  //       console.log(`after path ${path}`);
+
+  //       folders += `${folder}/`;
+  //       if (fs.existsSync(folders)) {
+  //         fs.rmSync(folders, { recursive: true, force: true });
+  //       }
+
+  //       return folders;
+  //     }, '');
+  //   } catch (error) {
+  //     console.log(`Error in FolderSystemService for deleteFolder: ${error}`);
+  //     throw new InternalServerErrorException('Failed to delete folder');
+  //   }
+  // }
+
+  async deleteFolder(path: string): Promise<void> {
+    try {
+      if (fs.existsSync(path)) {
+        await fs.promises.rm(path, { recursive: true, force: true });
+      }
+    } catch (error) {
+      console.error(`Error in FolderSystemService for deleteFolder: ${error}`);
+      throw new InternalServerErrorException('Failed to delete folder');
+    }
+  }
 }

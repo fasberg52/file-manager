@@ -15,7 +15,22 @@ export interface FolderCreateResponse {
   data: Folder;
 }
 
-export interface getFolderById {
+export interface getFolder {
   statusCode: HttpStatus;
   data: Folder;
+}
+
+export interface PathRequest {
+  path: string;
+}
+
+export interface initializeRootFolder {
+  statusCode: HttpStatus;
+  message?: string;
+  data?: Folder;
+  state: boolean;
+}
+export interface deleteFolderAndContents {
+  statusCode: HttpStatus;
+  message?: string;
 }
