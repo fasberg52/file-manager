@@ -23,11 +23,9 @@ ffmpeg.setFfmpegPath('C:\\Program Files (x86)\\ffmpeg\\bin\\ffmpeg.exe');
 @Injectable()
 export class HlsService {
   constructor(
-    @InjectModel('Hls') private readonly hlsModel: Model<Hls>,
     @InjectModel('File') private readonly fileModel: Model<File>,
     private readonly fileSystemService: FileSystemService,
   ) {}
-
   async generateHLS(filePath: string): Promise<convertToHLS> {
     try {
       const file = await this.fileModel.findOne({ path: filePath });
@@ -36,46 +34,49 @@ export class HlsService {
       }
 
       const outputPath = this.getHLSOutputPath(file);
-      console.log(`outputPath >> ${outputPath}`);
+      if (!fs.existsSync(outputPath)) {
+        fs.mkdirSync(outputPath, { recursive: true });
+      }
+      console.log(`outputPath >>> ${outputPath}`);
+      const qualities = [
+        { resolution: '426x240', bitrate: '400k' },
+        { resolution: '640x360', bitrate: '800k' },
+        { resolution: '854x480', bitrate: '1200k' },
+        { resolution: '1280x720', bitrate: '2500k' },
+      ];
 
-      const outputDir = path.dirname(outputPath);
-      if (!fs.existsSync(outputDir)) {
-        fs.mkdirSync(outputDir, { recursive: true });
+      const masterPlaylistContent = [];
+      console.log(`masterPlaylistContent >>> ${masterPlaylistContent}`);
+
+      for (const quality of qualities) {
+        const { resolution, bitrate } = quality;
+        const playlistFileName = `${file._id.toString()}_${resolution}.m3u8`;
+        const playlistFilePath = path.join(outputPath, playlistFileName);
+
+        await this.convertVideoToHLS(
+          file.path,
+          playlistFilePath,
+          resolution,
+          bitrate,
+        );
+        masterPlaylistContent.push(
+          `#EXT-X-STREAM-INF:BANDWIDTH=${
+            parseInt(bitrate) * 1024
+          },RESOLUTION=${resolution}\n${playlistFileName}`,
+        );
       }
 
-      await new Promise<void>((resolve, reject) => {
-        console.log(`file.path >> ${file.path}`);
-        ffmpeg(file.path)
-          .output(outputPath)
-          .addOptions([
-            '-profile:v baseline',
-            '-level 3.0',
-            '-start_number 0',
-            '-hls_time 60',
-            '-hls_list_size 0',
-            '-f hls',
-            '-preset ultrafast',
-            '-threads 0',
-          ])
-          .outputOptions('-c:a aac')
-          .outputOptions('-strict -2')
-          .on('end', async () => {
-            console.log('HLS conversion complete');
-            file.hlsPath = outputPath;
-
-            await file.save();
-            resolve();
-          })
-          .on('error', (err) => {
-            console.error('Error during HLS conversion:', err);
-            reject(err);
-          })
-          .run();
-      });
-
+      const masterPlaylistFilePath = path.join(outputPath, 'master.m3u8');
+      console.log(`masterPlaylistFilePath >>> ${masterPlaylistFilePath}`);
+      fs.writeFileSync(
+        masterPlaylistFilePath,
+        `#EXTM3U\n${masterPlaylistContent.join('\n')}`,
+      );
+      file.hlsPath = outputPath;
+      await file.save();
       return {
         statusCode: HttpStatus.OK,
-        message: 'ok',
+        message: 'HLS conversion completed successfully',
         fileId: file._id.toString(),
         hlsPath: outputPath,
       };
@@ -85,13 +86,42 @@ export class HlsService {
     }
   }
 
+  private async convertVideoToHLS(
+    inputPath: string,
+    outputPath: string,
+    resolution: string,
+    bitrate: string,
+  ): Promise<void> {
+    return new Promise((resolve, reject) => {
+      ffmpeg(inputPath)
+        .outputOptions([
+          '-profile:v baseline',
+          '-level 3.0',
+          `-s ${resolution}`,
+          `-b:v ${bitrate}`,
+          '-c:v libx264',
+          '-c:a aac',
+          '-strict -2',
+          '-f hls',
+          '-hls_time 10',
+          '-hls_list_size 0',
+        ])
+        .output(outputPath)
+        .on('end', () => {
+          console.log(`HLS conversion for resolution ${resolution} completed.`);
+
+          resolve();
+        })
+        .on('error', (err) => {
+          console.error('Error during HLS conversion:', err);
+          reject(err);
+        })
+        .run();
+    });
+  }
+
   private getHLSOutputPath(file: File): string {
-    return path.join(
-      path.dirname(file.path),
-      'hlsVideo',
-      file._id.toString(),
-      `${file._id.toString()}.m3u8`,
-    );
+    return path.join(path.dirname(file.path), 'hlsVideo', file._id.toString());
   }
 
   async getHLSPathById(
