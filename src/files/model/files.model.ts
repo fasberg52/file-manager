@@ -19,6 +19,10 @@ export class File extends Document {
 
   @Prop({ type: Types.ObjectId, ref: 'Folder' })
   folder: string;
+
+  @Prop({nullable:true})
+  hlsPath:string
 }
+
 
 export const FileSchema = SchemaFactory.createForClass(File);

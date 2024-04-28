@@ -1,7 +1,5 @@
 import { HttpStatus } from '@nestjs/common';
-import { Folder } from 'src/file-manager/models/file-manager.model';
-import { Hls } from '../model/hls.schema';
-
+import { File } from '../../files/model/files.model';
 export interface convertToHLS {
   statusCode: HttpStatus;
   message: string;
@@ -11,5 +9,5 @@ export interface convertToHLS {
 }
 export interface getHLSPathById {
   statusCode: HttpStatus;
-  data: Hls;
+  data: string;
 }

@@ -5,7 +5,7 @@ export type HlsDocument = Hls & Document;
 
 @Schema()
 export class Hls {
-  @Prop({ required: true })
+  @Prop({ required: true, type: Types.ObjectId })
   fileId: Types.ObjectId;
 
   @Prop()

@@ -56,6 +56,7 @@ export class FileSystemService {
       res.setHeader('Content-Length', stat.size);
       res.setHeader('Content-Type', 'application/vnd.apple.mpegurl');
       const readStream = fs.createReadStream(filePath);
+
       readStream.pipe(res);
     } catch (error) {
       if (error instanceof NotFoundException) {

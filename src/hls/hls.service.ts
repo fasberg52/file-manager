@@ -51,7 +51,7 @@ export class HlsService {
             '-profile:v baseline',
             '-level 3.0',
             '-start_number 0',
-            '-hls_time 10',
+            '-hls_time 60',
             '-hls_list_size 0',
             '-f hls',
             '-preset ultrafast',
@@ -61,12 +61,9 @@ export class HlsService {
           .outputOptions('-strict -2')
           .on('end', async () => {
             console.log('HLS conversion complete');
-            const hlsDoc = new this.hlsModel({
-              fileId: file._id,
-              hlsPath: outputPath,
-              // Other HLS metadata properties if any
-            });
-            await hlsDoc.save();
+            file.hlsPath = outputPath;
+
+            await file.save();
             resolve();
           })
           .on('error', (err) => {
@@ -97,64 +94,21 @@ export class HlsService {
     );
   }
 
-  // async getHLSPathById(
-  //   getHLSPathByIdDTO: GetHLSPathByIdDTO,
-  //   res: Response,
-  // ): Promise<getHLSPathById> {
-  //   try {
-  //     const { fileId } = getHLSPathByIdDTO;
-  //     console.log(`Searching for HLS path with fileId: ${fileId}`);
-
-  //     // Validate fileId format
-  //     if (!Types.ObjectId.isValid(fileId)) {
-  //       throw new BadRequestException('Invalid fileId format');
-  //     }
-
-  //     const objectId = fileId;
-  //     const hlsDoc = await this.hlsModel.findById(objectId).exec();
-  //     console.log(`Found HLS document: ${hlsDoc}`);
-  //     if (!hlsDoc || !hlsDoc.hlsPath) {
-  //       throw new NotFoundException('HLS file not found');
-  //     }
-  //     const hlsObject: Hls = {
-  //       fileId: objectId,
-  //       hlsPath: hlsDoc.hlsPath,
-  //     };
-  //     await this.fileSystemService.streamFile(hlsDoc.hlsPath, res);
-  //     return { statusCode: HttpStatus.OK, data: hlsObject };
-  //   } catch (error) {
-  //     if (
-  //       error instanceof NotFoundException ||
-  //       error instanceof BadRequestException
-  //     ) {
-  //       throw error;
-  //     }
-  //     console.error('Error getting HLS path:', error);
-  //     throw new InternalServerErrorException('Failed to get HLS path');
-  //   }
-  // }
-
   async getHLSPathById(
     getHLSPathByIdDTO: GetHLSPathByIdDTO,
-    res: Response,
-  ): Promise<void> {
+  ): Promise<getHLSPathById> {
     try {
       const { fileId } = getHLSPathByIdDTO;
       console.log(`Searching for HLS path with fileId: ${fileId}`);
-
-      // Validate fileId format
-      if (!Types.ObjectId.isValid(fileId)) {
-        throw new BadRequestException('Invalid fileId format');
-      }
-
-      const objectId = fileId;
-      const hlsDoc = await this.hlsModel.findById(objectId).exec();
-      console.log(`Found HLS document: ${hlsDoc}`);
-      if (!hlsDoc || !hlsDoc.hlsPath) {
+      const fileDoc = await this.fileModel.findById(fileId).exec();
+      console.log(`Found HLS document: ${fileDoc}`);
+      if (!fileDoc || !fileDoc.hlsPath) {
         throw new NotFoundException('HLS file not found');
       }
-
-      await this.fileSystemService.streamFile(hlsDoc.hlsPath, res);
+      return {
+        statusCode: HttpStatus.OK,
+        data: fileDoc.hlsPath,
+      };
     } catch (error) {
       if (
         error instanceof NotFoundException ||

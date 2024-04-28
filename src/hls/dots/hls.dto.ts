@@ -11,3 +11,9 @@ export class GetHLSPathByIdDTO {
   @IsString()
   fileId: string;
 }
+
+export class GetHlsPathDTO {
+  @IsNotEmpty()
+  @IsString()
+  hlsPath: string;
+}
